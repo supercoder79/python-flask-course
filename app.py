@@ -24,7 +24,7 @@ app.config['JWT_AUTH_URL_RULE'] = '/login'
 db_uri = os.getenv("DATABASE_URL", "sqlite:///data.db")
 ## Fix the database url to have postgresql:// in case of postgres
 if db_uri.startswith("postgres://"):
-    uri = db_uri.replace("postgres://", "postgresql://")
+    db_uri = db_uri.replace("postgres://", "postgresql://")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 
