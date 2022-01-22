@@ -20,12 +20,6 @@ app.config['JWT_AUTH_URL_RULE'] = '/login'
 ## Set to indicate where the DB is 
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
 
-## Flask decorator to indicate method should run before first request
-@app.before_first_request
-def create_tables():
-    ## It will create if not present the tables in the DB
-    db.create_all()
-
 ## Disable Flask SQLAlchemy modifications tracker
 ## as SQLAlchemy does that automatically
 app.config['SQLALCHECMY_TRACK_MODIFICATIONS'] = False
