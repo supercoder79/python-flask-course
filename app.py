@@ -4,6 +4,8 @@ from flask.json import jsonify
 from flask_restful import Api
 from flask_jwt import JWT
 
+import os
+
 from security import authenticate, identity
 from resources.user import UserRegister
 from resources.item import Item, Items
@@ -18,7 +20,13 @@ api = Api(app)
 app.config['JWT_AUTH_URL_RULE'] = '/login'
 
 ## Set to indicate where the DB is 
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db"
+## os.getenv will default to sqlite if DATABASE_URL is not found
+db_uri = os.getenv("DATABASE_URL", "sqlite:///data.db")
+## Fix the database url to have postgresql:// in case of postgres
+if db_uri.startswith("postgres://"):
+    uri = db_uri.replace("postgres://", "postgresql://")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 
 ## Disable Flask SQLAlchemy modifications tracker
 ## as SQLAlchemy does that automatically
