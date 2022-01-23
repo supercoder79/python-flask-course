@@ -21,10 +21,13 @@ app.config['JWT_AUTH_URL_RULE'] = '/login'
 
 ## Set to indicate where the DB is 
 ## os.getenv will default to sqlite if DATABASE_URL is not found
+print (f"Getting DATABASE_URL from environment")
 db_uri = os.getenv("DATABASE_URL", "sqlite:///data.db")
+print (f"DATABASE_URL: {db_uri}")
 ## Fix the database url to have postgresql:// in case of postgres
 if db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://")
+    print (f"Updated database URL: {db_uri}")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 
@@ -32,6 +35,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 ## as SQLAlchemy does that automatically
 app.config['SQLALCHECMY_TRACK_MODIFICATIONS'] = False
 
+## Initialise JWT and set authentication and identity handlers
+print ("Initialising JWT with authentication and identity handlers")
 jwt = JWT(app, authenticate, identity) # /auth
 
 ## configure JWT token to expire after 30 mins
