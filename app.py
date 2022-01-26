@@ -2,17 +2,18 @@ from datetime import timedelta
 from flask import Flask, request
 from flask.json import jsonify
 from flask_restful import Api
-from flask_jwt import JWT
+from flask_jwt_extended import JWTManager
 
 import os
 
-from security import authenticate, identity
-from resources.user import UserRegister, User
+from resources.user import UserRegister, User, UserLogin
 from resources.item import Item, Items
 from resources.store import Store, Stores
 from db import db
 
 app = Flask(__name__)
+## Set JWT Secret Key
+app.config['JWT_SECRET_KEY'] = "NikhilTopSecretKey654321"
 app.secret_key = "nikhil"
 api = Api(app)
 
@@ -36,9 +37,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHECMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True
 
-## Initialise JWT and set authentication and identity handlers
-print ("Initialising JWT with authentication and identity handlers")
-jwt = JWT(app, authenticate, identity) # /auth
+## Initialise JWTManager
+print ("Initialising JWT manager")
+jwt = JWTManager(app)
+
+@jwt.additional_claims_loader
+def add_claims_to_jwt(identity):
+    if identity == 1:
+        return {"is_admin": True}
+    return {"is_admin": False}
+
 
 ## configure JWT token to expire after 30 mins
 ## this can be applied after creating JWT object
@@ -67,6 +75,9 @@ api.add_resource(UserRegister, '/register')
 
 print ("Registering enpoint /user")
 api.add_resource(User, '/user/<int:user_id>')
+
+print ("Registering endpoint /login")
+api.add_resource(UserLogin, '/login')
 
 if __name__ == "__main__":
     db.init_app(app)
