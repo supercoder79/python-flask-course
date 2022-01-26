@@ -7,7 +7,7 @@ from flask_jwt import JWT
 import os
 
 from security import authenticate, identity
-from resources.user import UserRegister
+from resources.user import UserRegister, User
 from resources.item import Item, Items
 from resources.store import Store, Stores
 from db import db
@@ -34,6 +34,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 ## Disable Flask SQLAlchemy modifications tracker
 ## as SQLAlchemy does that automatically
 app.config['SQLALCHECMY_TRACK_MODIFICATIONS'] = False
+app.config['PROPAGATE_EXCEPTIONS'] = True
 
 ## Initialise JWT and set authentication and identity handlers
 print ("Initialising JWT with authentication and identity handlers")
@@ -63,6 +64,9 @@ api.add_resource(Stores, '/stores')
 
 print ("Registering enpoint /register")
 api.add_resource(UserRegister, '/register')
+
+print ("Registering enpoint /user")
+api.add_resource(User, '/user/<int:user_id>')
 
 if __name__ == "__main__":
     db.init_app(app)

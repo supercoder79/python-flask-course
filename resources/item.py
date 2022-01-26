@@ -10,7 +10,7 @@ class Items(Resource):
     def get(self):
         ## using list comprehension
         ## more 'pythonic' and readable :)
-        return {'items': [item.json() for item in ItemModel.query.all()]}, 200
+        return {'items': [item.json() for item in ItemModel.find_all()]}, 200
         
         ## using lambda functions & map
         # return {'items': list(map(lambda x: x.json(), ItemModel.query.all()))}, 200
@@ -52,7 +52,7 @@ class Item(Resource):
         
         request_data = Item.parser.parse_args()
         ## or user **request_data for dictionary unpacking
-        item = ItemModel(name, request_data['price'], request_data['store_id'])
+        item = ItemModel(name, **request_data)
         try:
             item.save_to_db()
         except:
@@ -75,7 +75,7 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
         
         if item is None:
-            item = Item(name, request_data['price'], request_data['store_id'])
+            item = Item(name, **request_data)
         else:
             item.price = request_data['price']
             item.store_id = request_data['store_id']
