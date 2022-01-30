@@ -1,6 +1,13 @@
 from werkzeug.security import safe_str_cmp
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import (
+    create_access_token, 
+    create_refresh_token, 
+    jwt_required,
+    get_jwt_identity,
+    get_jwt
+)
+from blocklist import BLOCKLIST
 from models.user import UserModel
 
 _user_parser = reqparse.RequestParser()
@@ -30,6 +37,7 @@ class UserRegister(Resource):
 
         return {'message': 'User created successfully!'}, 201
 
+
 class User(Resource):
 
     @classmethod
@@ -46,6 +54,7 @@ class User(Resource):
             return {"message": "User not found"}, 404
         user.delete_from_db()
         return {"message": "User deleted"}, 200
+
 
 class UserLogin(Resource):
     @classmethod
@@ -69,6 +78,23 @@ class UserLogin(Resource):
             }, 200
         
         return {"message": "User does not exist"}, 400
-        
-        
-        
+
+
+class UserLogout(Resource):
+    @jwt_required()
+    def post(self):
+        jti = get_jwt()['jti']
+        BLOCKLIST.add(jti)
+        return {"message": "Successfully logged out"}, 200
+
+
+class TokenRefresh(Resource):
+    ## Require a token refresh
+    @jwt_required(refresh=True)
+    def post(self):
+        ## get identity of current user
+        current_user = get_jwt_identity()
+        ## request a refreshed token
+        ## Set fresh = False, to indicate its a refreshed token
+        new_token = create_access_token(identity=current_user, fresh=False)
+        return {'access_token': new_token}, 200

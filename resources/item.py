@@ -1,5 +1,9 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_jwt_extended import (
+    jwt_required, 
+    get_jwt, 
+    get_jwt_identity
+)
 
 from models.item import ItemModel
 
@@ -7,10 +11,24 @@ from models.item import ItemModel
 class Items(Resource):
     ## GET /items 
     ## returns all items
+    ## User login is optional, if logged-in you get all info
+    @jwt_required(optional=True)
     def get(self):
-        ## using list comprehension
-        ## more 'pythonic' and readable :)
-        return {'items': [item.json() for item in ItemModel.find_all()]}, 200
+        ## Get user_id of user if logged in
+        user_id = get_jwt_identity()
+        items = [item.json() for item in ItemModel.find_all()]
+        ## Check if user is logged-in, then return all details
+        ## else return only item names
+        if user_id:
+            # print (f"Get /items called by a logged-in user")
+            ## using list comprehension
+            ## more 'pythonic' and readable :)
+            return {'items': items}, 200
+        # print ("User is not logged-in. Returning limited information")
+        return {
+            'items': [item['name'] for item in items],
+            'message': "Nore data available if you log in"
+        }, 200
         
         ## using lambda functions & map
         # return {'items': list(map(lambda x: x.json(), ItemModel.query.all()))}, 200
@@ -45,7 +63,9 @@ class Item(Resource):
         if item:
             return item.json(), 200
         return {'message': 'Item not found'}, 404
-       
+
+    ## Require a fresh JWT access token
+    @jwt_required(fresh=True)   
     def post(self, name):
         if ItemModel.find_by_name(name):
             return {'message': f"An item with name {name} already exists"}, 400
@@ -64,6 +84,7 @@ class Item(Resource):
     def delete(self, name):
         claims = get_jwt()
         print (f"JWT claims: {claims}")
+        ## Check claims if 'is_admin' is 1
         if not claims['is_admin']:
             return {"message": "Admin privilege required"}, 401
         item = ItemModel.find_by_name(name)
